@@ -1,0 +1,33 @@
+const authService = require("../services/AuthService");
+const { User } = require("../models");
+
+exports.verifyToken = async (req, res, next) => {
+  console.log("BAT DAU VERIFY TOKEN");
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+
+  try {
+    const decoded = authService.verifyToken(token);
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy thông tin người dùng" });
+    }
+
+    if (user.is_active === 0) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+        });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: error.message });
+  }
+  console.log("KET THUC VERIFY TOKEN");
+};
