@@ -9,6 +9,15 @@ const { Op } = require("sequelize");
 const axios = require("axios");
 require("dotenv").config();
 
+if (process.env.NODE_ENV === "production") {
+  // Azure deploy
+  const AzureAdapter = require("./messaging/azureAdapter");
+  messageBus = new AzureAdapter(process.env.AZURE_CONNECTION_STRING);
+} else {
+  // Local dev
+  messageBus = require("./messaging/localAdapter");
+}
+
 const MONOLITH_URL = process.env.MONOLITH_URL;
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL;
 
@@ -286,7 +295,7 @@ const createOrder = async (orderData) => {
   } = orderData;
 
   return await sequelize.transaction(async (t) => {
-    // 1️⃣ Tạo đơn hàng
+    // Tạo đơn hàng
     const order = await Order.create(
       {
         user_id: userID,
@@ -304,26 +313,7 @@ const createOrder = async (orderData) => {
       { transaction: t }
     );
 
-    // 2️⃣ Gọi Book Service để kiểm tra tồn kho & trừ tồn kho
-    try {
-      const { data } = await axios.post(
-        MONOLITH_URL + "/api/books/check-and-decrease-stock",
-        {
-          items: orderDetails.map((d) => ({
-            book_id: d.book_id,
-            quantity: d.quantity,
-          })),
-        }
-      );
-
-      if (!data.success) {
-        throw new Error(data.message || "Không thể cập nhật tồn kho");
-      }
-    } catch (err) {
-      throw new Error(`Lỗi kiểm tra tồn kho từ Book Service: ${err.message}`);
-    }
-
-    // 3️⃣ Lưu chi tiết đơn
+    // Lưu chi tiết đơn
     for (const detail of orderDetails) {
       await OrderDetail.create(
         {
@@ -336,6 +326,15 @@ const createOrder = async (orderData) => {
       );
     }
 
+    // Emit event "order.created" → Book Service xử lý trừ tồn kho
+    const message = {
+      orderId: order.id,
+      orderDetails: orderDetails.map((d) => ({
+        book_id: d.book_id,
+        quantity: d.quantity,
+      })),
+    };
+    await messageBus.publish("order.created", message);
     return order;
   });
 };

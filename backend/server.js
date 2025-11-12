@@ -2,6 +2,15 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const { checkAndDecreaseStock } = require("./services/BookService");
+if (process.env.NODE_ENV === "production") {
+  // Azure deploy
+  const AzureAdapter = require("./messaging/azureAdapter");
+  messageBus = new AzureAdapter(process.env.AZURE_CONNECTION_STRING);
+} else {
+  // Local dev
+  messageBus = require("./messaging/localAdapter");
+}
 
 // =============================
 // ⚙️ Cấu hình kết nối Azure MySQL
@@ -89,6 +98,19 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found", path: req.path });
+});
+
+messageBus.consume("order.created", async (msg) => {
+  try {
+    await checkAndDecreaseStock(msg.orderDetails);
+    await messageBus.publish("order.stock.success", { orderId: msg.orderId });
+  } catch (err) {
+    console.error("Trừ tồn kho thất bại:", err.message);
+    await messageBus.publish("order.stock.failed", {
+      orderId: msg.orderId,
+      reason: err.message,
+    });
+  }
 });
 
 app.listen(PORT, () => {
