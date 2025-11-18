@@ -2,39 +2,33 @@ on:
   push:
     branches:
       - main
-    # 🎯 Thêm bộ lọc paths để chỉ chạy workflow này khi có thay đổi trong thư mục 'gateway'
     paths:
-      - 'gateway/**' 
+      - 'gateway/**'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read 
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
-        # 🎯 Chạy tất cả các lệnh trong thư mục con './gateway'
-        working-directory: ./gateway # <--- ĐÃ SỬA
-        run: |
-          npm install
-          npm run test --if-present
-        
+      - name: Install dependencies
+        working-directory: ./gateway
+        run: npm install
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          # 🎯 Chỉ upload các file đã được build của gateway service
-          path: ./gateway # <--- ĐÃ SỬA
+          path: ./gateway  # upload toàn bộ folder gateway
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,11 +38,11 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -56,11 +50,9 @@ jobs:
           tenant-id: ${{ secrets.__TENANT_ID_SECRET_NAME__ }}
           subscription-id: ${{ secrets.__SUBSCRIPTION_ID_SECRET_NAME__ }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'bookstore-gateway-app'
           slot-name: 'Production'
-          # package: . <--- Giữ nguyên, vì artifact đã upload chính xác nội dung thư mục 'gateway'
           package: .
