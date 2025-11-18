@@ -23,10 +23,11 @@ jobs:
 
       - name: npm install, build, and test
         # 🎯 Chạy tất cả các lệnh trong thư mục con './gateway'
+        working-directory: ./gateway # <--- ĐÃ SỬA
         run: |
           npm install
           npm run test --if-present
-        working-directory: ./gateway # <--- ĐÃ SỬA
+        
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
