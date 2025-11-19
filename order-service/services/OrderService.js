@@ -8,15 +8,7 @@ const {
 const { Op } = require("sequelize");
 const axios = require("axios");
 require("dotenv").config();
-
-if (process.env.NODE_ENV === "production") {
-  // Azure deploy
-  const AzureAdapter = require("./messaging/azureAdapter");
-  messageBus = new AzureAdapter(process.env.AZURE_CONNECTION_STRING);
-} else {
-  // Local dev
-  messageBus = require("./messaging/localAdapter");
-}
+const { publishOrderCreatedEvent } = require("../eventPublisher");
 
 const MONOLITH_URL = process.env.MONOLITH_URL;
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL;
@@ -294,49 +286,70 @@ const createOrder = async (orderData) => {
     orderDetails,
   } = orderData;
 
-  return await sequelize.transaction(async (t) => {
-    // Tạo đơn hàng
-    const order = await Order.create(
-      {
-        user_id: userID,
-        order_date: new Date(),
-        shipping_method_id,
-        shipping_address,
-        promotion_code: promotion_code || null,
-        total_amount,
-        shipping_fee,
-        discount_amount,
-        final_amount,
-        payment_method,
-        status: "pending",
-      },
-      { transaction: t }
-    );
+  let orderResult;
+  let eventMessage;
 
-    // Lưu chi tiết đơn
-    for (const detail of orderDetails) {
-      await OrderDetail.create(
+  try {
+    // 1. Chạy Giao dịch Database: đảm bảo toàn vẹn dữ liệu
+    orderResult = await sequelize.transaction(async (t) => {
+      // Tạo đơn hàng
+      const order = await Order.create(
         {
-          order_id: order.id,
-          book_id: detail.book_id,
-          quantity: detail.quantity,
-          unit_price: detail.unit_price,
+          user_id: userID,
+          order_date: new Date(),
+          shipping_method_id,
+          shipping_address,
+          promotion_code: promotion_code || null,
+          total_amount,
+          shipping_fee,
+          discount_amount,
+          final_amount,
+          payment_method,
+          status: "pending",
         },
         { transaction: t }
       );
+
+      // Lưu chi tiết đơn
+      for (const detail of orderDetails) {
+        await OrderDetail.create(
+          {
+            order_id: order.id,
+            book_id: detail.book_id,
+            quantity: detail.quantity,
+            unit_price: detail.unit_price,
+          },
+          { transaction: t }
+        );
+      }
+
+      // 2. Chuẩn bị sự kiện sau khi DB thành công
+      eventMessage = {
+        orderId: order.id,
+        orderDetails: orderDetails.map((d) => ({
+          book_id: d.book_id,
+          quantity: d.quantity,
+        })),
+        // Thêm các dữ liệu cần thiết cho Order Processing/Inventory Update
+      };
+
+      // Trả về đối tượng order sau khi giao dịch thành công
+      return order;
+    });
+
+    // 3. Phát Sự kiện (Chỉ chạy khi Giao dịch đã COMMIT)
+    if (orderResult && eventMessage) {
+      // Sử dụng hàm Service Bus Publisher đã tích hợp
+      // Đây là nơi gửi sự kiện lên Azure Service Bus Topic
+      await publishOrderCreatedEvent(eventMessage);
     }
 
-    // Emit event "order.created" → Book Service xử lý trừ tồn kho
-    const message = {
-      orderId: order.id,
-      orderDetails: orderDetails.map((d) => ({
-        book_id: d.book_id,
-        quantity: d.quantity,
-      })),
-    };
-    await messageBus.publish("order.created", message);
-    return order;
-  });
+    return orderResult;
+  } catch (error) {
+    console.error("Lỗi trong quá trình tạo đơn hàng:", error);
+    // Nếu có lỗi, giao dịch sẽ tự động rollback.
+    throw error;
+  }
 };
 
 const confirmOrder = async (orderId) => {
