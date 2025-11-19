@@ -8,7 +8,7 @@ const {
 const { Op } = require("sequelize");
 const axios = require("axios");
 require("dotenv").config();
-const { publishOrderCreatedEvent } = require("../eventPublisher");
+const { publishOrderCreatedEvent } = require("./eventPublisher");
 
 const MONOLITH_URL = process.env.MONOLITH_URL;
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL;
