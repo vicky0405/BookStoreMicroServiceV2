@@ -1,6 +1,11 @@
-require('dotenv').config();
-const { Sequelize } = require('sequelize');
+require("dotenv").config();
+const { Sequelize } = require("sequelize");
 
+console.log("BACKEND: " + process.env.DB_NAME);
+console.log("BACKEND: " + process.env.DB_USER);
+console.log("BACKEND: " + process.env.DB_PASSWORD);
+console.log("BACKEND: " + process.env.process.env.DB_HOST);
+console.log("BACKEND: " + process.env.DB_PORT);
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -8,7 +13,7 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 3306,
-    dialect: 'mysql',
+    dialect: "mysql",
     logging: false,
     dialectOptions: {
       ssl: {
@@ -22,10 +27,10 @@ const sequelize = new Sequelize(
 sequelize
   .authenticate()
   .then(() => {
-    console.log('✅ Connected to MySQL successfully.');
+    console.log("✅ Connected to MySQL successfully.");
   })
   .catch((err) => {
-    console.error('❌ MySQL connection error:', err);
+    console.error("❌ MySQL connection error:", err);
   });
 
 module.exports = sequelize;
