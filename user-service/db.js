@@ -1,6 +1,10 @@
 require("dotenv").config();
 const { Sequelize } = require("sequelize");
-
+console.log("USERSERVICE DB_NAME: " + process.env.DB_NAME);
+console.log("USERSERVICE DB_USER: " + process.env.DB_USER);
+console.log("USERSERVICE DB_PASSWORD: " + process.env.DB_PASSWORD);
+console.log("USERSERVICE DB_HOST: " + process.env.DB_HOST);
+console.log("USERSERVICE DB_PORT: " + process.env.DB_PORT);
 // Use service-specific env vars when available, otherwise fall back to generic DB_* vars.
 const DB_NAME = process.env.DB_NAME;
 const DB_USER = process.env.DB_USER;
