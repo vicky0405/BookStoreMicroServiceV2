@@ -1,11 +1,11 @@
 require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
-console.log("BACKEND: " + process.env.DB_NAME);
-console.log("BACKEND: " + process.env.DB_USER);
-console.log("BACKEND: " + process.env.DB_PASSWORD);
-console.log("BACKEND: " + process.env.process.env.DB_HOST);
-console.log("BACKEND: " + process.env.DB_PORT);
+console.log("BACKEND DB_NAME: " + process.env.DB_NAME);
+console.log("BACKEND DB_USER: " + process.env.DB_USER);
+console.log("BACKEND DB_PASSWORD: " + process.env.DB_PASSWORD);
+console.log("BACKEND DB_HOST: " + process.env.DB_HOST);
+console.log("BACKEND DB_PORT: " + process.env.DB_PORT);
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
