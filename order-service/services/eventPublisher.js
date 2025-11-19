@@ -4,6 +4,9 @@ const { ServiceBusClient } = require("@azure/service-bus");
 require("dotenv").config();
 // Biến môi trường này cần được thiết lập trong Azure App Service Configuration
 const CONNECTION_STRING = process.env.SERVICEBUS_CONNECTION_STRING;
+console.log(
+  "SERVICEBUS_CONNECTION_STRING: " + process.env.SERVICEBUS_CONNECTION_STRING
+);
 const TOPIC_NAME = "order-created-topic";
 
 const sbClient = new ServiceBusClient(CONNECTION_STRING);
