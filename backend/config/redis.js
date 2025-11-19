@@ -10,6 +10,8 @@ const redis = new Redis({
   // tls: {
   //   rejectUnauthorized: false,
   // },
+  enableKeepAlive: true,
+  keepAlive: 60000, // Gửi gói tin Keepalive mỗi 60 giây
   connectTimeout: 10000,
 });
 
