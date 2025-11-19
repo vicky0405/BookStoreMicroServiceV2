@@ -42,21 +42,21 @@ const LoginForm = ({ onForgotPassword, onRegister }) => {
       console.log("Login successful:", user);
 
       // Chuyển hướng dựa vào role_id - match with App.jsx routes exactly
-      // if (user.role_id === 1) {
-      //   navigate('/admin', { replace: true });
-      // } else if (user.role_id === 2) {
-      //   navigate('/sales', { replace: true });
-      // } else if (user.role_id === 3) {
-      //   navigate('/inventory', { replace: true });
-      // } else if (user.role_id === 4) {
-      //   navigate('/', { replace: true });
-      // } else if (user.role_id === 5) {
-      //   navigate('/order-manager', { replace: true });
-      // } else if (user.role_id === 6) {
-      //   navigate('/shipper', { replace: true });
-      // } else {
-      //   setLoginError('Tài khoản không có quyền truy cập hệ thống.');
-      // }
+      if (user.role_id === 1) {
+        navigate("/admin", { replace: true });
+      } else if (user.role_id === 2) {
+        navigate("/sales", { replace: true });
+      } else if (user.role_id === 3) {
+        navigate("/inventory", { replace: true });
+      } else if (user.role_id === 4) {
+        navigate("/", { replace: true });
+      } else if (user.role_id === 5) {
+        navigate("/order-manager", { replace: true });
+      } else if (user.role_id === 6) {
+        navigate("/shipper", { replace: true });
+      } else {
+        setLoginError("Tài khoản không có quyền truy cập hệ thống.");
+      }
     } catch (error) {
       console.error("Login error in form:", error);
       console.error("Error type:", typeof error);
