@@ -6,7 +6,7 @@ on:
       - main
     paths: # <--- Bắt đầu thêm bộ lọc Paths
       - "frontend/**"
-      - ".github/workflows/azure-static-web-app.yml"
+      - ".github/workflows/azure-static-web-apps-proud-desert-09df0bc00.yml"
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
