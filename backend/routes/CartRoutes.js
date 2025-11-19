@@ -8,7 +8,7 @@ const verifyToken = async (req, res, next) => {
   const token = req.header("Authorization");
   try {
     const response = await axios.get(
-      "http://localhost:5001/api/auth/validate-token",
+      USER_SERVICE_URL + "/api/auth/validate-token",
       {
         headers: { Authorization: token },
       }
