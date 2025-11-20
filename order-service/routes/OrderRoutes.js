@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+require("dotenv").config();
 
 const verifyToken = async (req, res, next) => {
   const token = req.header("Authorization");
