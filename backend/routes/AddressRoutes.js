@@ -13,7 +13,6 @@ const verifyToken = async (req, res, next) => {
         headers: { Authorization: token },
       }
     );
-    ư;
     req.user = response.data.user;
     next();
   } catch (err) {
