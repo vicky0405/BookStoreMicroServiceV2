@@ -182,5 +182,12 @@ app.use(
     logLevel: "debug",
   })
 );
-
+app.use(
+  "/uploads",
+  createProxyMiddleware({
+    target: MONOLITH_URL + "/uploads",
+    changeOrigin: true,
+    logLevel: "debug",
+  })
+);
 app.listen(PORT, () => console.log("✅ Gateway running on port " + PORT));
