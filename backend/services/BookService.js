@@ -20,31 +20,31 @@ const CACHE_TTL = {
   BOOKS_CATEGORY: 1800, // 30 minutes
 };
 
-// const getAllBooks = async () => {
-//   return await cacheHelper.getOrSet(
-//     CACHE_KEYS.ALL_BOOKS,
-//     async () => {
-//       return await Book.findAll({
-//         include: [
-//           { model: Category, as: "category", attributes: ["id", "name"] },
-//           { model: Publisher, as: "publisher", attributes: ["id", "name"] },
-//           { model: BookImages, as: "images", attributes: ["id", "image_path"] },
-//         ],
-//       });
-//     },
-//     CACHE_TTL.BOOKS_LIST
-//   );
-// };
-
 const getAllBooks = async () => {
-  return await Book.findAll({
-    include: [
-      { model: Category, as: "category", attributes: ["id", "name"] },
-      { model: Publisher, as: "publisher", attributes: ["id", "name"] },
-      { model: BookImages, as: "images", attributes: ["id", "image_path"] },
-    ],
-  });
+  return await cacheHelper.getOrSet(
+    CACHE_KEYS.ALL_BOOKS,
+    async () => {
+      return await Book.findAll({
+        include: [
+          { model: Category, as: "category", attributes: ["id", "name"] },
+          { model: Publisher, as: "publisher", attributes: ["id", "name"] },
+          { model: BookImages, as: "images", attributes: ["id", "image_path"] },
+        ],
+      });
+    },
+    CACHE_TTL.BOOKS_LIST
+  );
 };
+
+// const getAllBooks = async () => {
+//   return await Book.findAll({
+//     include: [
+//       { model: Category, as: "category", attributes: ["id", "name"] },
+//       { model: Publisher, as: "publisher", attributes: ["id", "name"] },
+//       { model: BookImages, as: "images", attributes: ["id", "image_path"] },
+//     ],
+//   });
+// };
 
 const getBooksByIds = async (ids) => {
   if (!Array.isArray(ids) || ids.length === 0) {
