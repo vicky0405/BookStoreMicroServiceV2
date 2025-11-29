@@ -4,10 +4,10 @@ const getAllBooks = async (req, res) => {
   console.log("fetch");
   try {
     // Optional query param useView=1 to fetch from pricing view
-    // if (req.query.useView === "1") {
-    //   const rows = await bookService.getAllBooksPricing();
-    //   return res.json(rows);
-    // }
+    if (req.query.useView === "1") {
+      const rows = await bookService.getAllBooksPricing();
+      return res.json(rows);
+    }
     const books = await bookService.getAllBooks();
     res.json(books);
   } catch (error) {
